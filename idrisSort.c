@@ -1,13 +1,35 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
+#include <time.h>
 
 #define size 10
 
+// Counters for comparisons and permutations
+int nbComp = 0;
+int nbPerm = 0;
+
+typedef struct Node {
+    int data;
+    struct Node* next;
+} Node;
+
+void displayArray(int arr[], int n) {
+    for (int i = 0; i < n; i++) {
+        printf("%d ", arr[i]);
+    }
+    printf("\n");
+}
+
 void selectionSorting(int T[]) {
+    nbComp = 0;
+    nbPerm = 0;
+
     int indexmin;
     for (int i = 0; i < size - 1; i++) {
         indexmin = i;
         for (int j = i + 1; j < size; j++) {
+            nbComp++;
             if (T[j] < T[indexmin]) {
                 indexmin = j;
             }
@@ -15,47 +37,64 @@ void selectionSorting(int T[]) {
         int temp = T[i];
         T[i] = T[indexmin];
         T[indexmin] = temp;
+        nbPerm++;
+
+        // Display intermediate state
+        printf("After iteration %d: ", i + 1);
+        displayArray(T, size);
     }
+
+    printf("Comparisons: %d, Permutations: %d\n", nbComp, nbPerm);
 }
 
 void insertionSorting(int T[]) {
-    for(int i=1; i<size; i++){
+    nbComp = 0;
+    nbPerm = 0;
+
+    for (int i = 1; i < size; i++) {
         int temp = T[i];
-        int j = i-1;
+        int j = i - 1;
 
-        while(j>=0 && T[j] > temp){
-            T[j+1] = T[j];
+        while (j >= 0 && T[j] > temp) {
+            nbComp++;
+            T[j + 1] = T[j];
             j--;
+            nbPerm++;
         }
+        if (j >= 0) nbComp++;
 
-        T[j+1] = temp;
+        T[j + 1] = temp;
+
+        // Display intermediate state
+        printf("After iteration %d: ", i);
+        displayArray(T, size);
     }
+
+    printf("Comparisons: %d, Permutations: %d\n", nbComp, nbPerm);
 }
 
 void merge(int arr[], int left, int middle, int right) {
     int i, j, k;
-    int n1 = middle - left + 1;    // size of left subarray
-    int n2 = right - middle;       // size of right subarray
-    
-    // create temporary arrays
-    int *L = (int*)malloc(n1 * sizeof(int));
-    int *R = (int*)malloc(n2 * sizeof(int));
-    
-    // copy data to temporary arrays L[] and R[]
-    for (i = 0; i < n1; i++){
+    int n1 = middle - left + 1;
+    int n2 = right - middle;
+
+    int* L = (int*)malloc(n1 * sizeof(int));
+    int* R = (int*)malloc(n2 * sizeof(int));
+
+    for (i = 0; i < n1; i++) {
         L[i] = arr[left + i];
     }
 
-    for (j = 0; j < n2; j++){
+    for (j = 0; j < n2; j++) {
         R[j] = arr[middle + 1 + j];
     }
-    
-    // merge the temporary arrays back into arr[left..right]
-    i = 0;      // initial index of left subarray
-    j = 0;      // initial index of right subarray
-    k = left;   // initial index of merged subarray
-    
+
+    i = 0;
+    j = 0;
+    k = left;
+
     while (i < n1 && j < n2) {
+        nbComp++;
         if (L[i] <= R[j]) {
             arr[k] = L[i];
             i++;
@@ -64,63 +103,78 @@ void merge(int arr[], int left, int middle, int right) {
             j++;
         }
         k++;
+        nbPerm++;
     }
-    
-    // copy the remaining elements of L[], if any
+
     while (i < n1) {
         arr[k] = L[i];
         i++;
         k++;
+        nbPerm++;
     }
-    
-    // copy the remaining elements of R[], if any
+
     while (j < n2) {
         arr[k] = R[j];
         j++;
         k++;
+        nbPerm++;
     }
-    
-    // free the temporary arrays
+
     free(L);
     free(R);
 }
 
-// main mergeSort function that sorts arr[left..right] using merge()
 void mergeSort(int arr[], int left, int right) {
     if (left < right) {
-        // find the middle point to divide the array into two halves
         int middle = left + (right - left) / 2;
-        
-        // sort first and second halves recursively
+
         mergeSort(arr, left, middle);
         mergeSort(arr, middle + 1, right);
-        
-        // merge the sorted halves
+
         merge(arr, left, middle, right);
+
+        // Display intermediate state
+        printf("After merging [%d..%d]: ", left, right);
+        displayArray(arr, size);
     }
+}
+
+void analyzeSortingTime(void (*sortingFunction)(int[]), int arr[], const char* sortName) {
+    int tempArr[size];
+    memcpy(tempArr, arr, size * sizeof(int));
+
+    clock_t start = clock();
+    sortingFunction(tempArr);
+    clock_t end = clock();
+
+    double timeSpent = (double)(end - start) / CLOCKS_PER_SEC;
+    printf("%s Time Taken: %.6f seconds\n", sortName, timeSpent);
 }
 
 int main() {
     int V[size] = {7, 5, 11, 6, 8, 4, 37, 43, 2, 9};
 
-    printf("Unsorted array: ");
-    for (int i = 0; i < size; i++) {
-        printf("%d ", V[i]);
-    }
-    printf("\n");
+    printf("Original array: ");
+    displayArray(V, size);
 
-    //*********************Procedures Call*****************************/
+    printf("\nSelection Sort:\n");
+    analyzeSortingTime(selectionSorting, V, "Selection Sort");
 
-    // selectionSorting(V);
-    // insertionSorting(V);
-    mergeSort(V, 0, size - 1);
+    printf("\nInsertion Sort:\n");
+    analyzeSortingTime(insertionSorting, V, "Insertion Sort");
 
-    //**************************************************/
-
-    printf("Sorted array: ");
-    for (int i = 0; i < size; i++) {
-        printf("%d ", V[i]);
-    }
+    printf("\nMerge Sort:\n");
+    nbComp = 0;
+    nbPerm = 0;
+    analyzeSortingTime(mergeSort, V, "Merge Sort");
+    printf("Comparisons: %d, Permutations: %d\n", nbComp, nbPerm);
 
     return 0;
 }
+
+/*
+Time Complexity Analysis:
+- Selection Sort: O(n^2) for all cases.
+- Insertion Sort: Best O(n), Average/Worst O(n^2).
+- Merge Sort: O(n log n) for all cases.
+*/
