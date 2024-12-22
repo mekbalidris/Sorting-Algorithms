@@ -1,180 +1,244 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <time.h>
 
-#define size 10
+#define MAX_SIZE 50
+#define MAX_STR_LEN 20
 
-// Counters for comparisons and permutations
-int nbComp = 0;
-int nbPerm = 0;
+// Structure for statistics tracking
+typedef struct {
+    int comparisons;
+    int permutations;
+} SortStats;
 
 typedef struct Node {
     int data;
     struct Node* next;
 } Node;
 
-void displayArray(int arr[], int n) {
-    for (int i = 0; i < n; i++) {
+// Function to display array state after each iteration
+void displayArray(int arr[], int size, int iteration) {
+    printf("Iteration %d: ", iteration);
+    for (int i = 0; i < size; i++) {
         printf("%d ", arr[i]);
     }
     printf("\n");
 }
 
-void selectionSorting(int T[]) {
-    nbComp = 0;
-    nbPerm = 0;
+// Function to display string array state
+void displayStringArray(char arr[][MAX_STR_LEN], int size, int iteration) {
+    printf("Iteration %d: ", iteration);
+    for (int i = 0; i < size; i++) {
+        printf("%s ", arr[i]);
+    }
+    printf("\n");
+}
 
-    int indexmin;
+// Function to display linked list state
+void displayList(Node* head, int iteration) {
+    printf("Iteration %d: ", iteration);
+    Node* current = head;
+    while (current != NULL) {
+        printf("%d ", current->data);
+        current = current->next;
+    }
+    printf("\n");
+}
+
+// Enhanced Selection Sort with statistics
+SortStats selectionSort(int arr[], int size) {
+    SortStats stats = {0, 0};
+    int iteration = 0;
+    
     for (int i = 0; i < size - 1; i++) {
-        indexmin = i;
+        int min_idx = i;
         for (int j = i + 1; j < size; j++) {
-            nbComp++;
-            if (T[j] < T[indexmin]) {
-                indexmin = j;
+            stats.comparisons++;
+            if (arr[j] < arr[min_idx]) {
+                min_idx = j;
             }
         }
-        int temp = T[i];
-        T[i] = T[indexmin];
-        T[indexmin] = temp;
-        nbPerm++;
-
-        // Display intermediate state
-        printf("After iteration %d: ", i + 1);
-        displayArray(T, size);
+        
+        if (min_idx != i) {
+            int temp = arr[i];
+            arr[i] = arr[min_idx];
+            arr[min_idx] = temp;
+            stats.permutations++;
+        }
+        
+        iteration++;
+        displayArray(arr, size, iteration);
     }
-
-    printf("Comparisons: %d, Permutations: %d\n", nbComp, nbPerm);
+    
+    return stats;
 }
 
-void insertionSorting(int T[]) {
-    nbComp = 0;
-    nbPerm = 0;
-
+// Enhanced Insertion Sort with statistics
+SortStats insertionSort(int arr[], int size) {
+    SortStats stats = {0, 0};
+    int iteration = 0;
+    
     for (int i = 1; i < size; i++) {
-        int temp = T[i];
+        int key = arr[i];
         int j = i - 1;
-
-        while (j >= 0 && T[j] > temp) {
-            nbComp++;
-            T[j + 1] = T[j];
+        
+        while (j >= 0 && arr[j] > key) {
+            stats.comparisons++;
+            arr[j + 1] = arr[j];
             j--;
-            nbPerm++;
+            stats.permutations++;
         }
-        if (j >= 0) nbComp++;
-
-        T[j + 1] = temp;
-
-        // Display intermediate state
-        printf("After iteration %d: ", i);
-        displayArray(T, size);
+        
+        arr[j + 1] = key;
+        iteration++;
+        displayArray(arr, size, iteration);
     }
-
-    printf("Comparisons: %d, Permutations: %d\n", nbComp, nbPerm);
+    
+    return stats;
 }
 
-void merge(int arr[], int left, int middle, int right) {
-    int i, j, k;
-    int n1 = middle - left + 1;
-    int n2 = right - middle;
-
-    int* L = (int*)malloc(n1 * sizeof(int));
-    int* R = (int*)malloc(n2 * sizeof(int));
-
-    for (i = 0; i < n1; i++) {
-        L[i] = arr[left + i];
+// Enhanced String Insertion Sort with statistics
+SortStats insertionSortStrings(char arr[][MAX_STR_LEN], int size) {
+    SortStats stats = {0, 0};
+    int iteration = 0;
+    
+    for (int i = 1; i < size; i++) {
+        char key[MAX_STR_LEN];
+        strcpy(key, arr[i]);
+        int j = i - 1;
+        
+        while (j >= 0 && strcmp(arr[j], key) > 0) {
+            stats.comparisons++;
+            strcpy(arr[j + 1], arr[j]);
+            j--;
+            stats.permutations++;
+        }
+        
+        strcpy(arr[j + 1], key);
+        iteration++;
+        displayStringArray(arr, size, iteration);
     }
+    
+    return stats;
+}
 
-    for (j = 0; j < n2; j++) {
-        R[j] = arr[middle + 1 + j];
-    }
-
-    i = 0;
-    j = 0;
-    k = left;
-
-    while (i < n1 && j < n2) {
-        nbComp++;
-        if (L[i] <= R[j]) {
-            arr[k] = L[i];
-            i++;
+// Enhanced Linked List Insertion Sort with statistics
+SortStats insertionSortLinkedList(Node** head) {
+    SortStats stats = {0, 0};
+    Node* sorted = NULL;
+    Node* current = *head;
+    int iteration = 0;
+    
+    while (current != NULL) {
+        Node* next = current->next;
+        stats.comparisons++;
+        
+        if (sorted == NULL || sorted->data >= current->data) {
+            current->next = sorted;
+            sorted = current;
+            stats.permutations++;
         } else {
-            arr[k] = R[j];
-            j++;
+            Node* temp = sorted;
+            while (temp->next != NULL && temp->next->data < current->data) {
+                stats.comparisons++;
+                temp = temp->next;
+            }
+            current->next = temp->next;
+            temp->next = current;
+            stats.permutations++;
         }
-        k++;
-        nbPerm++;
+        
+        current = next;
+        iteration++;
+        displayList(sorted, iteration);
     }
-
-    while (i < n1) {
-        arr[k] = L[i];
-        i++;
-        k++;
-        nbPerm++;
-    }
-
-    while (j < n2) {
-        arr[k] = R[j];
-        j++;
-        k++;
-        nbPerm++;
-    }
-
-    free(L);
-    free(R);
+    
+    *head = sorted;
+    return stats;
 }
 
-void mergeSort(int arr[], int left, int right) {
-    if (left < right) {
-        int middle = left + (right - left) / 2;
-
-        mergeSort(arr, left, middle);
-        mergeSort(arr, middle + 1, right);
-
-        merge(arr, left, middle, right);
-
-        // Display intermediate state
-        printf("After merging [%d..%d]: ", left, right);
-        displayArray(arr, size);
-    }
+// Function to create a new node
+Node* createNode(int data) {
+    Node* newNode = (Node*)malloc(sizeof(Node));
+    newNode->data = data;
+    newNode->next = NULL;
+    return newNode;
 }
 
-void analyzeSortingTime(void (*sortingFunction)(int[]), int arr[], const char* sortName) {
-    int tempArr[size];
-    memcpy(tempArr, arr, size * sizeof(int));
+// Menu function for vector sorting
+void vectorSortMenu() {
+    int arr[MAX_SIZE];
+    int size;
+    SortStats stats;
+    
+    printf("\nVector Sort Menu\n");
+    printf("Enter size of array (max %d): ", MAX_SIZE);
+    scanf("%d", &size);
+    
+    printf("Enter %d integers:\n", size);
+    for (int i = 0; i < size; i++) {
+        scanf("%d", &arr[i]);
+    }
+    
+    printf("\nChoose sorting method:\n");
+    printf("1. Selection Sort\n");
+    printf("2. Insertion Sort\n");
+    int choice;
+    scanf("%d", &choice);
+    
+    printf("\nOriginal array: ");
+    displayArray(arr, size, 0);
+    
+    switch(choice) {
+        case 1:
+            stats = selectionSort(arr, size);
+            break;
+        case 2:
+            stats = insertionSort(arr, size);
+            break;
+        default:
+            printf("Invalid choice!\n");
+            return;
+    }
+    
+    printf("\nFinal Results:\n");
+    printf("Number of comparisons: %d\n", stats.comparisons);
+    printf("Number of permutations: %d\n", stats.permutations);
+}
 
-    clock_t start = clock();
-    sortingFunction(tempArr);
-    clock_t end = clock();
-
-    double timeSpent = (double)(end - start) / CLOCKS_PER_SEC;
-    printf("%s Time Taken: %.6f seconds\n", sortName, timeSpent);
+// Main menu function
+void mainMenu() {
+    while (1) {
+        printf("\nMain Menu\n");
+        printf("1. Vector Sort\n");
+        printf("2. Matrix Sort\n");
+        printf("3. Linked List Sort\n");
+        printf("4. Exit\n");
+        printf("Enter your choice: ");
+        
+        int choice;
+        scanf("%d", &choice);
+        
+        switch(choice) {
+            case 1:
+                vectorSortMenu();
+                break;
+            case 2:
+                printf("Matrix Sort - To be implemented\n");
+                break;
+            case 3:
+                printf("Linked List Sort - To be implemented\n");
+                break;
+            case 4:
+                printf("Exiting program\n");
+                return;
+            default:
+                printf("Invalid choice! Please try again.\n");
+        }
+    }
 }
 
 int main() {
-    int V[size] = {7, 5, 11, 6, 8, 4, 37, 43, 2, 9};
-
-    printf("Original array: ");
-    displayArray(V, size);
-
-    printf("\nSelection Sort:\n");
-    analyzeSortingTime(selectionSorting, V, "Selection Sort");
-
-    printf("\nInsertion Sort:\n");
-    analyzeSortingTime(insertionSorting, V, "Insertion Sort");
-
-    printf("\nMerge Sort:\n");
-    nbComp = 0;
-    nbPerm = 0;
-    analyzeSortingTime(mergeSort, V, "Merge Sort");
-    printf("Comparisons: %d, Permutations: %d\n", nbComp, nbPerm);
-
+    mainMenu();
     return 0;
 }
-
-/*
-Time Complexity Analysis:
-- Selection Sort: O(n^2) for all cases.
-- Insertion Sort: Best O(n), Average/Worst O(n^2).
-- Merge Sort: O(n log n) for all cases.
-*/
