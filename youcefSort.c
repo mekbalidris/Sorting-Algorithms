@@ -1,4 +1,5 @@
 #include<stdio.h>
+#include<string.h>
 
 // ******************************Array implementation: **************************
 // Swap function to use it in all functions
@@ -70,14 +71,61 @@ void combSort(int arr[], int n) {
         }
     }
 }
+// +++++++++++++++++++++++++++++++++++++++++++++++++++++
+// ******************************Matrix implementation: **************************
+// Swap function >
+void swapString(char arr[][20], int i, int j) {
+    char temp[20];
+    strcpy(temp, arr[i]);
+    strcpy(arr[i], arr[j]);
+    strcpy(arr[j], temp);
+
+}
+
+// Quick sort function >
+// Partitiont function :
+int partitionString(char matr[][20], int low, int high) {
+    char pvt[20];
+    strcpy(pivot, matr[high]);
+    int i = low -1;
+    for(int j = low; j < high; j ++ ) {
+        if(strcmp(matr[j], pvt) < 0) { // comaraison alphabitique
+            i ++;
+            swap(matr, i, j);
+        }
+        
+    }
+    swap(arr, i + 1, high);
+    return i + 1;
+}
+
+void quickSortString(char matr[][20], int low, int high) {
+    if(low < hight) {
+        int pi = partitionString(matr, low, high);
+        quickSort(matr, low, pi - 1);
+        quickSort(matr, pi + 1, high);
+    }
+}
+
+
 
 // +++++++++++++++++++++++++++++++++++++++++++++++++++++
 // Display >
+
+// display array :
 void displayArray(int arr[], int n) {
     for(int i = 0; i < n; i ++) {
         printf("%d ", arr[i]);
     }
 }
+
+// display matrix that have strings:
+void DisplayMatrix(char matr[][20], int size) {
+    for(int i = 0; i< size; i ++) {
+        printf("%s\n", matr[i]);
+    }
+}
+
 
 int main() {
 
