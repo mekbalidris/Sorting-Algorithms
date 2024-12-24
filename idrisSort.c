@@ -5,18 +5,16 @@
 #define MAX_SIZE 50
 #define MAX_STR_LEN 20
 
-// Structure for statistics tracking
 typedef struct {
     int comparisons;
     int permutations;
 } SortStats;
 
 typedef struct Node {
-    int data;
+    char word[MAX_STR_LEN];
     struct Node* next;
 } Node;
 
-// Function to display array state after each iteration
 void displayArray(int arr[], int size, int iteration) {
     printf("Iteration %d: ", iteration);
     for (int i = 0; i < size; i++) {
@@ -25,7 +23,6 @@ void displayArray(int arr[], int size, int iteration) {
     printf("\n");
 }
 
-// Function to display string array state
 void displayStringArray(char arr[][MAX_STR_LEN], int size, int iteration) {
     printf("Iteration %d: ", iteration);
     for (int i = 0; i < size; i++) {
@@ -34,18 +31,16 @@ void displayStringArray(char arr[][MAX_STR_LEN], int size, int iteration) {
     printf("\n");
 }
 
-// Function to display linked list state
 void displayList(Node* head, int iteration) {
     printf("Iteration %d: ", iteration);
     Node* current = head;
     while (current != NULL) {
-        printf("%d ", current->data);
+        printf("%s ", current->word);
         current = current->next;
     }
     printf("\n");
 }
 
-// Enhanced Selection Sort with statistics
 SortStats selectionSort(int arr[], int size) {
     SortStats stats = {0, 0};
     int iteration = 0;
@@ -73,7 +68,6 @@ SortStats selectionSort(int arr[], int size) {
     return stats;
 }
 
-// Enhanced Insertion Sort with statistics
 SortStats insertionSort(int arr[], int size) {
     SortStats stats = {0, 0};
     int iteration = 0;
@@ -97,8 +91,7 @@ SortStats insertionSort(int arr[], int size) {
     return stats;
 }
 
-// Enhanced String Insertion Sort with statistics
-SortStats insertionSortStrings(char arr[][MAX_STR_LEN], int size) {
+SortStats insertionSortMatrix(char arr[][MAX_STR_LEN], int size) {
     SortStats stats = {0, 0};
     int iteration = 0;
     
@@ -122,8 +115,14 @@ SortStats insertionSortStrings(char arr[][MAX_STR_LEN], int size) {
     return stats;
 }
 
-// Enhanced Linked List Insertion Sort with statistics
-SortStats insertionSortLinkedList(Node** head) {
+Node* createNode(const char* word) {
+    Node* newNode = (Node*)malloc(sizeof(Node));
+    strcpy(newNode->word, word);
+    newNode->next = NULL;
+    return newNode;
+}
+
+SortStats insertionSortList(Node** head) {
     SortStats stats = {0, 0};
     Node* sorted = NULL;
     Node* current = *head;
@@ -133,13 +132,13 @@ SortStats insertionSortLinkedList(Node** head) {
         Node* next = current->next;
         stats.comparisons++;
         
-        if (sorted == NULL || sorted->data >= current->data) {
+        if (sorted == NULL || strcmp(sorted->word, current->word) >= 0) {
             current->next = sorted;
             sorted = current;
             stats.permutations++;
         } else {
             Node* temp = sorted;
-            while (temp->next != NULL && temp->next->data < current->data) {
+            while (temp->next != NULL && strcmp(temp->next->word, current->word) < 0) {
                 stats.comparisons++;
                 temp = temp->next;
             }
@@ -157,15 +156,6 @@ SortStats insertionSortLinkedList(Node** head) {
     return stats;
 }
 
-// Function to create a new node
-Node* createNode(int data) {
-    Node* newNode = (Node*)malloc(sizeof(Node));
-    newNode->data = data;
-    newNode->next = NULL;
-    return newNode;
-}
-
-// Menu function for vector sorting
 void vectorSortMenu() {
     int arr[MAX_SIZE];
     int size;
@@ -206,7 +196,69 @@ void vectorSortMenu() {
     printf("Number of permutations: %d\n", stats.permutations);
 }
 
-// Main menu function
+void matrixSortMenu() {
+    char matrix[MAX_SIZE][MAX_STR_LEN];
+    int size;
+    SortStats stats;
+    
+    printf("\nMatrix Sort Menu\n");
+    printf("Enter number of strings (max %d): ", MAX_SIZE);
+    scanf("%d", &size);
+    getchar();  // Consume newline
+    
+    printf("Enter %d strings:\n", size);
+    for (int i = 0; i < size; i++) {
+        fgets(matrix[i], MAX_STR_LEN, stdin);
+        matrix[i][strcspn(matrix[i], "\n")] = 0;  // Remove newline
+    }
+    
+    printf("\nOriginal matrix:\n");
+    displayStringArray(matrix, size, 0);
+    
+    stats = insertionSortMatrix(matrix, size);
+    
+    printf("\nFinal Results:\n");
+    printf("Number of comparisons: %d\n", stats.comparisons);
+    printf("Number of permutations: %d\n", stats.permutations);
+}
+
+void linkedListSortMenu() {
+    Node* head = NULL;
+    int size;
+    SortStats stats;
+    
+    printf("\nLinked List Sort Menu\n");
+    printf("Enter number of words (max %d): ", MAX_SIZE);
+    scanf("%d", &size);
+    getchar();  // Consume newline
+    
+    printf("Enter %d words:\n", size);
+    for (int i = 0; i < size; i++) {
+        char word[MAX_STR_LEN];
+        fgets(word, MAX_STR_LEN, stdin);
+        word[strcspn(word, "\n")] = 0;  // Remove newline
+        
+        Node* newNode = createNode(word);
+        newNode->next = head;
+        head = newNode;
+    }
+    
+    printf("\nOriginal list:\n");
+    displayList(head, 0);
+    
+    stats = insertionSortList(&head);
+    
+    printf("\nFinal Results:\n");
+    printf("Number of comparisons: %d\n", stats.comparisons);
+    printf("Number of permutations: %d\n", stats.permutations);
+    
+    while (head != NULL) {
+        Node* temp = head;
+        head = head->next;
+        free(temp);
+    }
+}
+
 void mainMenu() {
     while (1) {
         printf("\nMain Menu\n");
@@ -224,10 +276,10 @@ void mainMenu() {
                 vectorSortMenu();
                 break;
             case 2:
-                printf("Matrix Sort - To be implemented\n");
+                matrixSortMenu();
                 break;
             case 3:
-                printf("Linked List Sort - To be implemented\n");
+                linkedListSortMenu();
                 break;
             case 4:
                 printf("Exiting program\n");
