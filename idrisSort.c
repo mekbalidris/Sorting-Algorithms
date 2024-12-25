@@ -91,6 +91,73 @@ SortStats insertionSort(int arr[], int size) {
     return stats;
 }
 
+void merge(int arr[], int left, int middle, int right) {
+    SortStats stats = {0, 0};
+    int i, j, k;
+    int n1 = middle - left + 1;
+    int n2 = right - middle;
+
+    int* L = (int*)malloc(n1 * sizeof(int));
+    int* R = (int*)malloc(n2 * sizeof(int));
+
+    for (i = 0; i < n1; i++) {
+        L[i] = arr[left + i];
+    }
+
+    for (j = 0; j < n2; j++) {
+        R[j] = arr[middle + 1 + j];
+    }
+
+    i = 0;
+    j = 0;
+    k = left;
+
+    while (i < n1 && j < n2) {
+        stats.comparisons++;
+        if (L[i] <= R[j]) {
+            arr[k] = L[i];
+            i++;
+        } else {
+            arr[k] = R[j];
+            j++;
+        }
+        k++;
+        stats.permutations++;
+    }
+
+    while (i < n1) {
+        arr[k] = L[i];
+        i++;
+        k++;
+        stats.permutations++;
+    }
+
+    while (j < n2) {
+        arr[k] = R[j];
+        j++;
+        k++;
+        stats.permutations++;
+    }
+
+    free(L);
+    free(R);
+}
+
+void mergeSort(int arr[], int left, int right, int size, int* iteration) {
+    if (left < right) {
+        int middle = left + (right - left) / 2;
+
+        mergeSort(arr, left, middle, size, iteration);
+        mergeSort(arr, middle + 1, right, size, iteration);
+
+        merge(arr, left, middle, right);
+
+        // Display intermediate state
+        printf("After merging [%d..%d]: ", left, right);
+        displayArray(arr, size, ++(*iteration));
+    }
+}
+
 SortStats insertionSortMatrix(char arr[][MAX_STR_LEN], int size) {
     SortStats stats = {0, 0};
     int iteration = 0;
@@ -160,6 +227,7 @@ void vectorSortMenu() {
     int arr[MAX_SIZE];
     int size;
     SortStats stats;
+    int iteration = 0;
     
     printf("\nVector Sort Menu\n");
     printf("Enter size of array (max %d): ", MAX_SIZE);
@@ -185,6 +253,9 @@ void vectorSortMenu() {
             break;
         case 2:
             stats = insertionSort(arr, size);
+            break;
+        case 3:
+            mergeSort(arr, 0, size - 1, size, &iteration);
             break;
         default:
             printf("Invalid choice!\n");
