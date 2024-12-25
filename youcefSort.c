@@ -1,6 +1,11 @@
 #include<stdio.h>
 #include<string.h>
 
+typedef struct Node {
+    char word[20];
+    struct Node* next;
+} Node;
+
 // ******************************Array implementation: **************************
 // Swap function to use it in all functions
 
@@ -107,7 +112,43 @@ void quickSortString(char matr[][20], int low, int high) {
     }
 }
 
+// +++++++++++++++++++++++++++++++++++++++++++++++++++++
+// *********************** Linked list implimentation : **************************
 
+
+// Linked list bubble sorting >
+void bubbleSortingList(node** l) {
+    if(l == NULL || l->next == NULL) {
+        return;
+    }
+
+    int swap;
+    node *p, *q, *next;
+    // p : current pointer, q : prev pointer
+    do {
+        swap = 0;
+        p = *l;
+        q = NULL
+        while (p != NULL && p->next != NULL) {
+            next = p->next;
+
+            if(strcmp(p->word, next->word) > 0) {
+                if(q == NULL) {
+                    *l = next;
+                } else {
+                    q->next = next;
+                }
+
+                p->next = next->next;
+                next->next = p;
+                swap = 1;
+            } else {
+                q = p;
+            }
+            p = p->next;
+        } while (swap);
+    }
+}
 
 // +++++++++++++++++++++++++++++++++++++++++++++++++++++
 // Display >
