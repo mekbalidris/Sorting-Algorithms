@@ -135,18 +135,21 @@ int partition(int arr[], int low, int high, SortStats *stats) {
 SortStats quickSort(int arr[], int low, int high) {
     SortStats stats = {0, 0};
     int iteration = 0;
+    iteration++;
 
     if (low < high) {
         int pi = partition(arr, low, high, &stats);
-        iteration++;
+        
         
         SortStats leftStats = quickSort(arr, low, pi - 1);
         SortStats rightStats = quickSort(arr, pi + 1, high);
-        displayArray(arr, high - low + 1, iteration);
+        
         stats.comparisons += leftStats.comparisons + rightStats.comparisons;
         stats.permutations += leftStats.permutations + rightStats.permutations;
     }
-
+    
+    displayArray(arr, high - low + 1, iteration);
+    
     return stats;
 }
 
@@ -257,7 +260,7 @@ SortStats quickSortString(char matr[][MAX_STR_LEN], int low, int high) {
     if (low < high) {
         int pi = partitionString(matr, low, high, &stats);
         iteration++;
-        displayStringArray(matr, high - low + 1, iteration);
+        
 
         SortStats leftStats = quickSortString(matr, low, pi - 1);
         SortStats rightStats = quickSortString(matr, pi + 1, high);
@@ -265,6 +268,7 @@ SortStats quickSortString(char matr[][MAX_STR_LEN], int low, int high) {
         stats.comparisons += leftStats.comparisons + rightStats.comparisons;
         stats.permutations += leftStats.permutations + rightStats.permutations;
     }
+    displayStringArray(matr, high - low + 1, iteration);
 
     return stats;
 }
