@@ -160,11 +160,11 @@ int partition(int arr[], int low, int high, SortStats *stats) {
     stats->permutations++;
     return (i + 1);
 }
-
+int iterationQuick = 0;
 SortStats quickSort(int arr[], int low, int high) {
     SortStats stats = {0, 0};
-    int iteration = 0;
-    iteration++;
+    
+    
 
     if (low < high) {
         int pi = partition(arr, low, high, &stats);
@@ -175,9 +175,11 @@ SortStats quickSort(int arr[], int low, int high) {
         
         stats.comparisons += leftStats.comparisons + rightStats.comparisons;
         stats.permutations += leftStats.permutations + rightStats.permutations;
+        iterationQuick++;
+        displayMergeSortProgress(arr,iterationQuick, low, high);
     }
     
-    displayArray(arr, high - low + 1, iteration);
+    
     
     return stats;
 }
