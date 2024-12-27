@@ -1,8 +1,9 @@
 #include<stdio.h>
 #include<stdlib.h>
 #include<string.h>
+#include <time.h> 
 
-#define MAX_SIZE 50
+#define MAX_SIZE 1000
 #define MAX_STR_LEN 20
 
 typedef struct {
@@ -21,6 +22,24 @@ Node* createNode(const char* word) {
     newNode->next = NULL;
     return newNode;
 }
+
+void measureSortingTime(void (*sortFunction)(int[], int), int arr[], int size, const char* algorithmName) {
+    clock_t start, end;
+    double cpu_time_used;
+    
+    // Create a copy of the array to keep original intact
+    int* arr_copy = (int*)malloc(size * sizeof(int));
+    memcpy(arr_copy, arr, size * sizeof(int));
+    
+    start = clock();
+    sortFunction(arr_copy, size);
+    end = clock();
+    
+    cpu_time_used = ((double) (end - start)) / CLOCKS_PER_SEC;
+    printf("\nTime taken by %s: %f seconds\n", algorithmName, cpu_time_used);
+    
+    free(arr_copy);
+}
 // Display functions >
 // *****************************************************
 
@@ -31,6 +50,16 @@ void displayArray(int arr[], int size, int iteration) {
     }
     printf("\n");
 }
+
+void displayMergeSortProgress(int arr[], int iteration, int left, int right) {
+    printf("Iteration %d: Merged range [%d..%d]: [", iteration, left, right);
+    for (int i = left; i <= right; i++) {
+        printf("%d", arr[i]);
+        if (i < right) printf(", ");
+    }
+    printf("]\n");
+}
+
 
 void displayStringArray(char arr[][MAX_STR_LEN], int size, int iteration) {
     printf("Iteration %d: ", iteration);
@@ -274,6 +303,90 @@ SortStats quickSortString(char matr[][MAX_STR_LEN], int low, int high) {
 }
 
 // *****************************************************
+void merge(int arr[], int left, int middle, int right, SortStats* stats) {
+    int i, j, k;
+    int n1 = middle - left + 1;
+    int n2 = right - middle;
+
+    int* L = (int*)malloc(n1 * sizeof(int));
+    int* R = (int*)malloc(n2 * sizeof(int));
+
+    for (i = 0; i < n1; i++) {
+        L[i] = arr[left + i];
+    }
+    for (j = 0; j < n2; j++) {
+        R[j] = arr[middle + 1 + j];
+    }
+
+  
+    i = 0;  
+    j = 0;  
+    k = left; 
+
+    while (i < n1 && j < n2) {
+        stats->comparisons++;
+        if (L[i] <= R[j]) {
+            arr[k] = L[i];
+            i++;
+        } else {
+            arr[k] = R[j];
+            j++;
+        }
+        stats->permutations++;
+        k++;
+    }
+
+
+    while (i < n1) {
+        arr[k] = L[i];
+        i++;
+        k++;
+        stats->permutations++;
+    }
+
+
+    while (j < n2) {
+        arr[k] = R[j];
+        j++;
+        k++;
+        stats->permutations++;
+    }
+
+    free(L);
+    free(R);
+}
+
+
+SortStats mergeSort(int arr[], int left, int right, int size) {
+    static int iteration = 0;
+    static SortStats totalStats = {0, 0};
+    
+    if (left < right) {
+        int middle = left + (right - left) / 2;
+
+        
+        mergeSort(arr, left, middle, size);
+        mergeSort(arr, middle + 1, right, size);
+
+        
+        SortStats mergeStats = {0, 0};
+        merge(arr, left, middle, right, &mergeStats);
+
+
+        totalStats.comparisons += mergeStats.comparisons;
+        totalStats.permutations += mergeStats.permutations;
+
+        iteration++;
+        displayMergeSortProgress(arr,iteration, left, right);
+    }
+
+    return totalStats;
+}
+
+
+// *****************************************************
+
+// *****************************************************
 // Linked list Sorting >
 SortStats insertionSortList(Node** head) {
     SortStats stats = {0, 0};
@@ -362,15 +475,21 @@ void vectorSortMenu() {
     int arr[MAX_SIZE];
     int size;
     SortStats stats;
+    srand(time(NULL));
     
     printf("\nVector Sort Menu\n");
     printf("Enter size of array (max %d): ", MAX_SIZE);
     scanf("%d", &size);
     
-    printf("Enter %d integers:\n", size);
-    for (int i = 0; i < size; i++) {
-        scanf("%d", &arr[i]);
+    if (size > MAX_SIZE) {
+        printf("Size exceeds maximum limit of %d.\n", MAX_SIZE);
+        return;
     }
+    
+    // Generate random array
+    for (int i = 0; i < size; i++) {  
+        arr[i] = rand() % 1000 + 1;
+    }  
     
     printf("\nChoose sorting method:\n");
     printf("1. Selection Sort\n");
@@ -378,35 +497,65 @@ void vectorSortMenu() {
     printf("3. Bubble Sort\n");
     printf("4. Quick Sort\n");
     printf("5. Comb Sort\n");
-    printf("Coming soon \n");
+    printf("6. Merge Sort\n");
     int choice;
     scanf("%d", &choice);
     
     printf("\nOriginal array: ");
     displayArray(arr, size, 0);
     
+    int* temp_arr = (int*)malloc(size * sizeof(int));
+    memcpy(temp_arr, arr, size * sizeof(int));
+    
+    clock_t start, end;
+    double cpu_time_used;
+    
     switch(choice) {
         case 1:
+            start = clock();
             stats = selectionSort(arr, size);
+            end = clock();
             break;
         case 2:
+            start = clock();
             stats = insertionSort(arr, size);
+            end = clock();
             break;
         case 3:
+            start = clock();
             stats = bubbleSort(arr, size);
+            end = clock();
             break;
         case 4:
+            start = clock();
             stats = quickSort(arr, 0, size - 1);
-            break;    
+            end = clock();
+            break;
+        case 5:
+            start = clock();
+            stats = combSort(arr, size);
+            end = clock();
+            break;
+        case 6:
+            start = clock();
+            stats = mergeSort(arr, 0, size - 1, size);
+            end = clock();
+            break;
         default:
-            printf("Invalid choice!\n");
+            printf("Invalid choice.\n");
+            free(temp_arr);
             return;
     }
     
-    printf("\nFinal Results:\n");
-    printf("Number of comparisons: %d\n", stats.comparisons);
-    printf("Number of permutations: %d\n", stats.permutations);
-} 
+    cpu_time_used = ((double) (end - start)) / CLOCKS_PER_SEC;
+    
+    printf("\nSorting completed.\n");
+    printf("Total comparisons: %d\n", stats.comparisons);
+    printf("Total permutations: %d\n", stats.permutations);
+    printf("Time taken: %f seconds\n", cpu_time_used);
+    
+    free(temp_arr);
+}
 
 void matrixSortMenu() {
     char matrix[MAX_SIZE][MAX_STR_LEN];
@@ -416,12 +565,12 @@ void matrixSortMenu() {
     printf("\nMatrix Sort Menu\n");
     printf("Enter number of strings (max %d): ", MAX_SIZE);
     scanf("%d", &size);
-    getchar();  // Consume newline
+    getchar();
     
     printf("Enter %d strings:\n", size);
     for (int i = 0; i < size; i++) {
         fgets(matrix[i], MAX_STR_LEN, stdin);
-        matrix[i][strcspn(matrix[i], "\n")] = 0;  // Remove newline
+        matrix[i][strcspn(matrix[i], "\n")] = 0; 
     }
     
     printf("\nChoose sorting method:\n");
